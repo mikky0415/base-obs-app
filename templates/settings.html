@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>API設定 & チュートリアル</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; background-color: #f9f9f9; color: #333; }
+        .container { width: 100%; max-width: 800px; margin: auto; background-color: #fff; padding: 20px 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .message { padding: 10px 15px; border-radius: 5px; background-color: #e6ffed; border-left: 4px solid #34c759; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], textarea { width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { display: block; width: 100%; padding: 12px 20px; background-color: #007aff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #005bb5; }
+        h1, h3 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 40px 0; }
+        .display-options label { display: inline-block; margin-right: 20px; font-weight: normal; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>設定 & チュートリアル</h1>
+        <div>{{ tutorial_html|safe }}</div>
+        <hr>
+        <form method="post">
+            <h3>APIキー設定</h3>
+            {% if message %}<p class="message">{{ message }}</p>{% endif %}
+            <div>
+                <label for="base_client_id">BASE Client ID:</label>
+                <input type="text" id="base_client_id" name="base_client_id" value="{{ config.get('BASE_CLIENT_ID', '') }}" size="50">
+            </div>
+            <div>
+                <label for="base_client_secret">BASE Client Secret:</label>
+                <input type="text" id="base_client_secret" name="base_client_secret" value="{{ config.get('BASE_CLIENT_SECRET', '') }}" size="50">
+            </div>
+            <div>
+                <label for="base_auth_code">BASE Auth Code (認可コード):</label>
+                <input type="text" id="base_auth_code" name="base_auth_code" value="{{ config.get('BASE_AUTH_CODE', '') }}" size="50">
+            </div>
+            <div>
+                <label for="base_access_token">BASE Access Token:</label>
+                <input type="text" id="base_access_token" name="base_access_token" value="{{ config.get('BASE_ACCESS_TOKEN', '') }}" size="50">
+            </div>
+            <hr>
+            <h3>表示設定</h3>
+            <div>
+                <label for="order_limit">表示する注文件数:</label>
+                <select id="order_limit" name="order_limit">
+                    <option value="3" {% if config.get('order_limit') == 3 %}selected{% endif %}>3件</option>
+                    <option value="5" {% if config.get('order_limit') == 5 %}selected{% endif %}>5件</option>
+                    <option value="10" {% if config.get('order_limit') == 10 %}selected{% endif %}>10件</option>
+                </select>
+            </div>
+            <br>
+            <div class="display-options">
+                <label for="display_fields">表示する項目:</label><br>
+                <label><input type="checkbox" name="display_fields" value="product_name" {% if 'product_name' in config.get('display_fields', []) %}checked{% endif %}> 商品名</label>
+                <label><input type="checkbox" name="display_fields" value="buyer_name" {% if 'buyer_name' in config.get('display_fields', []) %}checked{% endif %}> 購入者名</label>
+                <label><input type="checkbox" name="display_fields" value="total" {% if 'total' in config.get('display_fields', []) %}checked{% endif %}> 合計金額</label>
+                <label><input type="checkbox" name="display_fields" value="add_comment" {% if 'add_comment' in config.get('display_fields', []) %}checked{% endif %}> メッセージ</label>
+                <label><input type="checkbox" name="display_fields" value="title" {% if 'title' in config.get('display_fields', []) %}checked{% endif %}> 商品名(title)</label>
+                <label><input type="checkbox" name="display_fields" value="price" {% if 'price' in config.get('display_fields', []) %}checked{% endif %}> 単価</label>
+                <label><input type="checkbox" name="display_fields" value="amount" {% if 'amount' in config.get('display_fields', []) %}checked{% endif %}> 数量</label>
+                <label><input type="checkbox" name="display_fields" value="item_total" {% if 'item_total' in config.get('display_fields', []) %}checked{% endif %}> 商品合計金額</label>
+            </div>
+            <br>
+            <div>
+                <label for="custom_message">カスタムメッセージ:</label>
+                <textarea id="custom_message" name="custom_message" rows="4">{{ config.get('custom_message', '') }}</textarea>
+            </div>
+            <br>
+            <button type="submit">保存</button>
+        </form>
+        <hr>
+        <p><a href="/" target="_blank">メインページを開く</a></p>
+    </div>
+</body>
+</html>

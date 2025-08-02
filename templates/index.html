@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最新の注文</title>
+    <style>
+        body { font-family: sans-serif; background-color: transparent; margin: 0; padding: 20px; color: #333; }
+        .chat-container { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px; }
+        .chat-bubble { background-color: #f0f0f0; border-radius: 20px; padding: 10px 15px; opacity: 0; transform: translateY(20px); animation: fadeIn 0.5s forwards; }
+        .chat-bubble p { margin: 5px 0; }
+        .product-name { font-weight: bold; }
+        .buyer-name { color: #555; }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .settings-panel { position: fixed; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .settings-panel label { display: block; margin-bottom: 5px; }
+        .settings-panel input { margin-bottom: 10px; }
+        .settings-link { font-size: 12px; margin-top: 10px; }
+        .version-info { font-size: 10px; color: #888; margin-top: 15px; text-align: right; }
+        #custom-message-container { margin-top: 20px; padding: 10px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="settings-panel">
+        <h3>デザイン調整</h3>
+        <div><label for="fontSize">文字サイズ:</label><input type="range" id="fontSize" min="10" max="30" value="16"></div>
+        <div><label for="fontColor">文字色:</label><input type="color" id="fontColor" value="#333333"></div>
+        <div><label for="bgColor">背景色:</label><input type="color" id="bgColor" value="#f0f0f0"></div>
+        <hr>
+        <h3>カスタムメッセージ調整</h3>
+        <div><label for="customMessageFontSize">文字サイズ:</label><input type="range" id="customMessageFontSize" min="10" max="30" value="16"></div>
+        <div><label for="customMessageFontColor">文字色:</label><input type="color" id="customMessageFontColor" value="#333333"></div>
+        <div><label for="customMessageBgColor">背景色:</label><input type="color" id="customMessageBgColor" value="#ffffff"></div>
+        <div class="settings-link"><a href="/settings" target="_blank">API設定はこちら</a></div>
+        <div class="version-info">
+            ver. {{ version }} ({{ deploy_target }})<br>
+            {{ last_updated }}
+        </div>
+    </div>
+    <div id="custom-message-container"></div>
+    <div id="orders-container" class="chat-container"></div>
+    <script>
+        const ordersContainer = document.getElementById('orders-container');
+        const customMessageContainer = document.getElementById('custom-message-container');
+        const fontSizeSlider = document.getElementById('fontSize');
+        const fontColorPicker = document.getElementById('fontColor');
+        const bgColorPicker = document.getElementById('bgColor');
+        const customMessageFontSizeSlider = document.getElementById('customMessageFontSize');
+        const customMessageFontColorPicker = document.getElementById('customMessageFontColor');
+        const customMessageBgColorPicker = document.getElementById('customMessageBgColor');
+
+        function applyStyles() {
+            document.body.style.fontSize = fontSizeSlider.value + 'px';
+            const bubbles = document.querySelectorAll('.chat-bubble');
+            bubbles.forEach(bubble => {
+                const pElements = bubble.querySelectorAll('p');
+                pElements.forEach(p => { p.style.color = fontColorPicker.value; });
+                bubble.style.backgroundColor = bgColorPicker.value;
+            });
+        }
+
+        function applyCustomMessageStyles() {
+            customMessageContainer.style.fontSize = customMessageFontSizeSlider.value + 'px';
+            customMessageContainer.style.color = customMessageFontColorPicker.value;
+            customMessageContainer.style.backgroundColor = customMessageBgColorPicker.value;
+        }
+
+        fontSizeSlider.addEventListener('input', applyStyles);
+        fontColorPicker.addEventListener('input', applyStyles);
+        bgColorPicker.addEventListener('input', applyStyles);
+        customMessageFontSizeSlider.addEventListener('input', applyCustomMessageStyles);
+        customMessageFontColorPicker.addEventListener('input', applyCustomMessageStyles);
+        customMessageBgColorPicker.addEventListener('input', applyCustomMessageStyles);
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'APIからの応答がありません');
+                }
+                const data = await response.json();
+                const orders = data.orders;
+                const customMessage = data.custom_message;
+
+                ordersContainer.innerHTML = '';
+                orders.forEach(order => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'chat-bubble';
+                    let content = '';
+                    if(order.add_comment) content += '<p>' + order.add_comment + '</p>';
+                    if(order.title) content += '<p class="product-name">' + order.title + '</p>';
+                    if(order.amount) content += '<p>数量: ' + order.amount + '</p>';
+                    if(order.price) content += '<p>単価: ' + order.price + '円</p>';
+                    if(order.item_total) content += '<p>商品合計: ' + order.item_total + '円</p>';
+                    if(order.buyer_name) content += '<p class="buyer-name">' + order.buyer_name + '様が購入しました</p>';
+                    if(order.total) content += '<p>合計金額: ' + order.total + '円</p>';
+                    bubble.innerHTML = content;
+                    ordersContainer.appendChild(bubble);
+                });
+
+                customMessageContainer.innerText = customMessage;
+
+                applyStyles();
+                applyCustomMessageStyles();
+            } catch (error) {
+                console.error('注文情報の取得に失敗:', error);
+                ordersContainer.innerHTML = '<p style="color: red;">' + error.message + '</p>';
+            }
+        }
+        setInterval(fetchOrders, 10000);
+        fetchOrders();
+    </script>
+</body>
+</html>
